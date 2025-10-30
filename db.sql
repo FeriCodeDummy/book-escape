@@ -1,5 +1,7 @@
 CREATE TABLE users (
   id              BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name   VARCHAR(255) NOT NULL,
+  surname   VARCHAR(255) NOT NULL,
   email           VARCHAR(255) NOT NULL UNIQUE,
   password_hash   VARCHAR(255) NOT NULL,
   is_verified     TINYINT(1) NOT NULL DEFAULT 0,
