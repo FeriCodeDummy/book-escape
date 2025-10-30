@@ -6,21 +6,20 @@ import {getHotelCoverPhoto, getHotelMinPrice, getHotelRating} from "@/lib/helper
 import React from "react";
 import Badge from "@/components/Badge";
 import StarRating from "@/components/StarRating";
+import Link from "next/link";
 
 
 
-
-
-
-export const HotelCard: React.FC<{
+const HotelCard: React.FC<{
     hotel: Hotel;
     isFav?: boolean;
     onToggleFav?: (hotelId: ID) => void;
-}> = ({ hotel, isFav, onToggleFav }) => {
+    onOpen?: (hotelId: ID) => void;
+}> = ({ hotel, isFav, onToggleFav, onOpen }) => {
     const cover = getHotelCoverPhoto(hotel.id);
     const minPrice = getHotelMinPrice(hotel.id);
     const { avg, count } = getHotelRating(hotel.id);
-    const {isAuthenticated} = useAuth();
+
 
     return (
         <div className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md">
@@ -30,16 +29,13 @@ export const HotelCard: React.FC<{
                 ) : (
                     <div className="flex h-full w-full items-center justify-center bg-neutral-100">No image</div>
                 )}
-                {isAuthenticated && (
-                    <button
-                        onClick={() => onToggleFav && onToggleFav(hotel.id)}
-                        className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow hover:bg-white"
-                        aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
-                    >
-                        <Heart className={`h-5 w-5 ${isFav ? 'fill-current' : ''}`} />
-                    </button>
-                )}
-
+                <button
+                    onClick={() => onToggleFav && onToggleFav(hotel.id)}
+                    className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-rose-500 shadow hover:bg-white"
+                    aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+                >
+                    <Heart className={`h-5 w-5 ${isFav ? 'fill-current' : ''}`} />
+                </button>
                 <div className="absolute left-3 top-3 flex gap-2">
                     <Badge>{hotel.city}, {hotel.country}</Badge>
                 </div>
@@ -64,10 +60,12 @@ export const HotelCard: React.FC<{
                         )}
                     </div>
                 </div>
-                <button className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-800">
+                <Link href={`/HotelDetails/${hotel.id}`} className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-800">
                     View details <ChevronRight className="h-4 w-4" />
-                </button>
+                </Link>
             </div>
         </div>
     );
 };
+
+export default HotelCard;

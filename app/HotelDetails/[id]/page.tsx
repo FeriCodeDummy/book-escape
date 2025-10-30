@@ -6,11 +6,14 @@ import {getHotelRating} from "@/lib/helpers/funcs";
 import {MapPin} from "lucide-react";
 import StarRating from "@/components/StarRating";
 import Badge from "@/components/Badge";
+import {useParams} from "next/navigation";
 
 
-const HotelDetails: React.FC<{ hotelId: ID; onBack: () => void }> = ({ hotelId, onBack }) => {
+const HotelDetails: React.FC = () => {
     const [checkIn, setCheckIn] = useState<string>("");
     const [checkOut, setCheckOut] =useState<string>("");
+    const { id } = useParams();
+    const hotelId = Number(id);
     const [guests, setGuests] = useState<number>(2);
     const roomTypes = db.room_types.filter(r => r.hotel_id === hotelId);
     const [selectedRoom, setSelectedRoom] = useState<ID | null>(roomTypes[0]?.id ?? null);
@@ -18,18 +21,13 @@ const HotelDetails: React.FC<{ hotelId: ID; onBack: () => void }> = ({ hotelId, 
     const hotel = db.hotels.find(h => h.id === hotelId);
     if (!hotel) return (
         <div className="mx-auto max-w-7xl px-4 py-10">
-            <button onClick={onBack} className="mb-4 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-neutral-50">← Back</button>
+            <button onClick={() => history.back()} className="mb-4 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-neutral-50">← Back</button>
             <div className="rounded-2xl border p-6">Hotel not found.</div>
         </div>
     );
 
-
     const photos = db.hotel_photos.filter(p => p.hotel_id === hotelId).sort((a,b)=> a.sort_order-b.sort_order);
     const { avg, count } = getHotelRating(hotelId);
-
-
-
-
 
     const curr = roomTypes.find(r => r.id === selectedRoom);
     const price = curr ? curr.base_price : 0;
@@ -49,12 +47,12 @@ const HotelDetails: React.FC<{ hotelId: ID; onBack: () => void }> = ({ hotelId, 
 
     return (
         <div className="mx-auto max-w-7xl px-4 py-8">
-            <button onClick={onBack} className="mb-4 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-neutral-50">← Back to results</button>
+            <button onClick={() => history.back()} className="mb-4 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-neutral-50">← Back to results</button>
 
             {/* Header */}
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                    <h1 className="text-2xl font-bold text-neutral-900">{hotel.name}</h1>
+                    <h1 className="text-2xl font-bold text-gray-200">{hotel.name}</h1>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-600">
                         <MapPin className="h-4 w-4" /> {hotel.address_line ? hotel.address_line + ', ' : ''}{hotel.city}, {hotel.country}
                         <span className="mx-2">·</span>
@@ -85,14 +83,14 @@ const HotelDetails: React.FC<{ hotelId: ID; onBack: () => void }> = ({ hotelId, 
                 <div className="md:col-span-2">
                     <div className="rounded-2xl border p-5">
                         <h2 className="text-lg font-semibold">About this stay</h2>
-                        <p className="mt-2 whitespace-pre-line text-sm text-neutral-700">{hotel.description || 'A lovely place to stay with comfort and style.'}</p>
+                        <p className="mt-2 whitespace-pre-line text-sm text-neutral-400">{hotel.description || 'A lovely place to stay with comfort and style.'}</p>
                         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div className="rounded-xl bg-neutral-50 p-3 text-sm">
-                                <div className="font-medium">Cancellation policy</div>
+                                <div className="font-medium text-neutral-700">Cancellation policy</div>
                                 <div className="text-neutral-600">Free cancellation up to {hotel.cancellation_policy_days} day(s) before check‑in.</div>
                             </div>
                             <div className="rounded-xl bg-neutral-50 p-3 text-sm">
-                                <div className="font-medium">Location</div>
+                                <div className="font-medium text-neutral-700">Location</div>
                                 <div className="text-neutral-600">{hotel.city}, {hotel.country}</div>
                             </div>
                         </div>
@@ -180,3 +178,5 @@ const HotelDetails: React.FC<{ hotelId: ID; onBack: () => void }> = ({ hotelId, 
         </div>
     )
 }
+
+export default HotelDetails

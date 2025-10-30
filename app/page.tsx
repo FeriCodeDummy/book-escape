@@ -5,13 +5,10 @@ import React, {useMemo, useState} from "react";
 import {db} from "@/lib/data/db";
 import {ID} from "@/types/commons";
 import {Calendar, ChevronRight, MapPin, Search, SlidersHorizontal, Users} from "lucide-react";
-import { HotelCard } from "@/components/HotelCard";
+import  HotelCard  from "@/components/HotelCard";
+import {getHotelMinPrice} from "@/lib/helpers/funcs";
+import Badge from "@/components/Badge";
 
-const Badge: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium text-neutral-700 bg-white/60 backdrop-blur-sm shadow-sm">
-{children}
-</span>
-);
 
 export default function Home() {
     const [query, setQuery] = useState("");
@@ -21,26 +18,7 @@ export default function Home() {
     const [maxPrice, setMaxPrice] = useState<number>(300);
     const [favorites, setFavorites] = useState<Set<ID>>(new Set(db.favorites.filter(f => f.user_id === 1).map(f => f.hotel_id)));
 
-    function getHotelCoverPhoto(hotelId: ID): string | null {
-        const p = db.hotel_photos.filter(p => p.hotel_id === hotelId).sort((a,b) => (b.is_cover?1:0) - (a.is_cover?1:0) || a.sort_order - b.sort_order)[0];
-        return p?.url ?? null;
-    }
 
-
-    function getHotelMinPrice(hotelId: ID): number | null {
-        const types = db.room_types.filter(r => r.hotel_id === hotelId);
-        if (!types.length) return null;
-// For homepage, we just show min base price. (You can enrich with inventory-aware min for a date range later.)
-        return Math.min(...types.map(t => t.base_price));
-    }
-
-
-    function getHotelRating(hotelId: ID): { avg: number; count: number } {
-        const rs = db.reviews.filter(r => r.hotel_id === hotelId && r.is_public);
-        if (!rs.length) return { avg: 0, count: 0 };
-        const avg = rs.reduce((acc, r) => acc + r.rating, 0) / rs.length;
-        return { avg, count: rs.length };
-    }
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
