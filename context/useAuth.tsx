@@ -1,3 +1,4 @@
+"use client"
 import {createContext, useContext, useEffect, useState} from 'react';
 import React from "react";
 import {LoginReturnBody} from "@/types/commons";
@@ -7,23 +8,12 @@ export type AuthContextType = {
     name:string;
     surname: string;
     email: string;
+    isManager: boolean;
+    managerId: number;
     signIn: ()=> void;
     signOut: ()=> void;
-}
-
-/*
-interface AuthContextType {
-  userInfo: any;
-  jwt: string | null;
-  signIn: () => Promise<void>;
-  signOut: () => Promise<void>;
-  restoreSession: () => Promise<void>;
-  loading: boolean;
 
 }
- */
-
-
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -31,7 +21,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [name, setName] = useState<string>('');
     const [surname, setSurname] = useState<string>('');
     const [email, setEmail] = useState<string>('');
-
+    const [isManager, setIsManager] = useState<boolean>(false);
+    const [managerId, setManagerId] = useState<number>(-1);
     const restoreSession = async()=> {
 
         const e = "example@mail.com";
@@ -56,8 +47,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setName(data.name!)
             setSurname(data.surname!)
             setEmail(data.email!)
+
+            const res = await fetch('/api/auth/manager', {
+                method: 'POST',
+                body: JSON.stringify({email: data.email}),
+                headers:{
+                    'Content-type': 'application/json'
+                }
+            })
+
+            const mdata = await res.json();
+            if (Array.isArray(mdata) && mdata.length > 0){
+                setManagerId(mdata[0].id);
+                setIsManager(true);
+            }
+
         }
         console.log(data)
+
     }
 
     const signIn = ():void => {}
@@ -70,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, name, surname, email, signIn, signOut }}>
+        <AuthContext.Provider value={{ isAuthenticated, name, surname, email, isManager, managerId, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     );

@@ -4,6 +4,8 @@ export interface IDBSettings {
     user: string
     password: string
     database: string
+    waitForConnections: boolean
+    connectionLimit: number
 }
 
 const GetDBSettings = (): IDBSettings => {
@@ -12,7 +14,9 @@ const GetDBSettings = (): IDBSettings => {
         port: 3306,
         user: 'root',
         database: 'bookescape',
-        password: ''
+        password: '',
+        waitForConnections: true,
+        connectionLimit: 10,
         }
 }
 

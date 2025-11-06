@@ -1,28 +1,51 @@
-import {NextRequest, NextResponse} from "next/server";
-import mysql from  'mysql2/promise';
-import {HotelEntity} from "@/types/enities";
-import GetDBSettings from "@/conf/IDB";
+// app/api/hotels/[id]/route.ts
+import { NextResponse } from "next/server";
+import { pool } from "@/lib/db";
 
-interface err {
-    error: string;
-}
-
-export async function GET(request:NextRequest,  { params }: { params: { id: string }}): Promise<NextResponse<HotelEntity[] | err>> {
-
-    const hotelId = Number(params.id);
-    if (isNaN(hotelId)) {
-        return NextResponse.json({ error: "Invalid hotel ID" }, { status: 400 });
-    }
-    const dbparams = GetDBSettings();
+export async function GET(_req: Request, context: { params: Promise<{ id: string; }> }) {
     try {
-        const connection = await mysql.createConnection(dbparams)
-        const sql = "SELECT `id`, `name`, `description`, `address_line`, `checkin_time`, `checkout_time`, `cancellation_policy_days`, `is_active` FROM hotels WHERE  id = ?";
-        const vals = [hotelId];
-        const [results] = await connection.execute<HotelEntity[]>(sql, vals);
+        const id = Number((await context.params).id);
+        if (isNaN(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-        return NextResponse.json(results, {status: 200, statusText: 'ok'})
-    }catch (error){
-        console.error((error as Error).message)
-        return NextResponse.json({error: (error as Error).message}, {status: 400});
+        const [hotelRows] = await pool.query(
+            `SELECT h.*,
+              COALESCE(AVG(r.rating),0) AS avg_rating,
+              COUNT(r.id) AS review_count
+       FROM hotels h
+       LEFT JOIN reviews r ON r.hotel_id = h.id
+       WHERE h.id = ?
+       GROUP BY h.id`,
+            [id]
+        );
+        if (!(hotelRows as any[]).length) {
+            return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+        const hotel = (hotelRows as any[])[0];
+
+        const [photos] = await pool.query(
+            `SELECT id, url, is_cover, sort_order FROM hotel_photos WHERE hotel_id = ? ORDER BY sort_order ASC, id ASC`,
+            [id]
+        );
+
+        const [rooms] = await pool.query(
+            `SELECT id, name, description, capacity, base_price, currency, total_rooms
+       FROM room_types WHERE hotel_id = ? ORDER BY base_price ASC, id DESC`,
+            [id]
+        );
+
+        const [reviews] = await pool.query(
+            `SELECT r.id, u.name, u.surname, r.rating, r.comment, r.created_at
+         FROM reviews r
+         JOIN users u ON u.id = r.user_id
+       WHERE r.hotel_id = ?
+       ORDER BY r.created_at DESC
+       LIMIT 10`,
+            [id]
+        );
+
+        return NextResponse.json({ ...hotel, photos, rooms, reviews });
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
     }
 }

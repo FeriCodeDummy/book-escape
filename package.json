@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
     "crypto-es": "^3.1.2",
     "lucide-react": "^0.548.0",
     "mysql2": "^3.15.3",
